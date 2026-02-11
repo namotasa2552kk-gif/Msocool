@@ -1,2 +1,29 @@
-Current Date and Time (UTC - YYYY-MM-DD HH:MM:SS formatted): 2026-02-11 08:50:45
-Current User's Login: namotasa2552kk-gif
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Chatbot</title>
+    <script>
+        async function searchGoogle(query) {
+            const response = await fetch(`https://www.googleapis.com/customsearch/v1?q=${query}&key=YOUR_API_KEY&cx=YOUR_CSE_ID`);
+            const data = await response.json();
+            return data;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value;
+            input.value = '';
+            document.getElementById('chat').innerHTML += `<div>User: ${message}</div>`;
+
+            const searchResults = await searchGoogle(message);
+            document.getElementById('chat').innerHTML += `<div>Bot: ${JSON.stringify(searchResults.items)}</div>`;
+        }
+    </script>
+</head>
+<body>
+    <h1>Welcome to the AI Chatbot</h1>
+    <div id="chat"></div>
+    <input id="user-input" type="text" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+</body>
+</html>
