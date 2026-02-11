@@ -1,29 +1,579 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-    <title>AI Chatbot</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant with Search - Msocool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .search-bar {
+            padding: 15px 20px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #764ba2;
+        }
+
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #f5f5f5;
+        }
+
+        .message {
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .ai-message {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .user-message .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+
+        .ai-message .message-content {
+            background: #e0e0e0;
+            color: #333;
+            border-bottom-left-radius: 0;
+        }
+
+        .search-result {
+            background: #fff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .search-result a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .search-result a:hover {
+            text-decoration: underline;
+        }
+
+        .search-result .title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .search-result .snippet {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-area input:focus {
+            border-color: #667eea;
+        }
+
+        .input-area button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .input-area button:hover {
+            background: #764ba2;
+        }
+
+        .input-area button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+            }
+            30% {
+                opacity: 1;
+            }
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .tabs {
+            padding: 10px 20px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            🤖 AI Assistant Search - Msocool
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('chat')">💬 Chat</button>
+            <button class="tab-btn" onclick="switchTab('search')">🔍 Search</button>
+            <button class="tab-btn" onclick="switchTab('info')">ℹ️ Info</button>
+        </div>
+
+        <div id="chatTab" class="chat-tab" style="display:flex; flex-direction:column; flex:1;">
+            <div class="chat-box" id="chatBox">
+                <div class="message ai-message">
+                    <div class="message-content">
+                        สวัสดีค่ะ! 👋 ฉันเป็น AI Assistant ที่สามารถค้นหาข้อมูลและตอบคำถามได้ สามารถช่วยคุณได้ด้วยการค้นหาหรือพูดคุย 😊
+                    </div>
+                </div>
+            </div>
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="พิมพ์คำถามหรือค้นหาเรื่องที่อยากรู้..."
+                    autocomplete="off"
+                >
+                <button onclick="sendMessage()">ส่ง</button>
+            </div>
+        </div>
+
+        <div id="searchTab" class="search-tab" style="display:none; flex-direction:column; flex:1;">
+            <div class="search-bar">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="ค้นหาในกูเกิล..."
+                    class="search-input"
+                >
+                <button class="search-btn" id="searchBtn" onclick="performSearch()">🔍 ค้นหา</button>
+            </div>
+            <div class="chat-box" id="searchResultBox">
+                <div class="message ai-message">
+                    <div class="message-content">
+                        📝 พิมพ์คำค้นหาและกดค้นหา...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="infoTab" style="display:none; flex-direction:column; flex:1; background:#f5f5f5; padding:20px; overflow-y:auto;">
+            <div class="message ai-message">
+                <div class="message-content">
+                    <strong>📊 ข้อมูลระบบ</strong><br><br>
+                    👤 ผู้ใช้: namotasa2552kk-gif<br>
+                    📅 วันที่: 2026-02-11<br>
+                    🕐 เวลา: 08:50:45 UTC<br>
+                    📦 Repository: namotasa2552kk-gif/Msocool<br>
+                    🔧 สถานะ: ทำงานได้เต็มที่ ✅
+                </div>
+            </div>
+            <div class="message ai-message">
+                <div class="message-content">
+                    <strong>✨ ฟีเจอร์ที่มี:</strong><br>
+                    ✅ ค้นหาข้อมูลจาก Wikipedia<br>
+                    ✅ ตอบคำถามทั่วไป<br>
+                    ✅ รองรับภาษาไทยและอังกฤษ<br>
+                    ✅ UI ที่สวยงาม<br>
+                    ✅ ตอบโต้แบบ Real-time
+                </div>
+            </div>
+        </div>
+
+        <div class="info-text">
+            User: namotasa2552kk-gif | Time: 2026-02-11 08:50:45
+        </div>
+    </div>
+
     <script>
-        async function searchGoogle(query) {
-            const response = await fetch(`https://www.googleapis.com/customsearch/v1?q=${query}&key=YOUR_API_KEY&cx=YOUR_CSE_ID`);
-            const data = await response.json();
-            return data;
+        const chatBox = document.getElementById('chatBox');
+        const messageInput = document.getElementById('messageInput');
+        const searchInput = document.getElementById('searchInput');
+        const searchResultBox = document.getElementById('searchResultBox');
+
+        // API Keys
+        const WIKIPEDIA_API = 'https://en.wikipedia.org/w/api.php';
+        const GOOGLE_CUSTOM_SEARCH = 'https://www.googleapis.com/customsearch/v1';
+
+        // ฐานข้อมูลคำตอบทั่วไป
+        const aiResponses = {
+            'สวัสดี|hello|hi|สวัสดีค่ะ|สวัสดีครับ': 'สวัสดีค่ะ! 👋 ยินดีต้อนรับไปยัง Msocool AI Assistant ^^',
+            'คุณคือใคร|คุณชื่ออะไร|who are you|ชื่อ': 'ฉันคือ AI Assistant ของ Msocool ค่ะ 🤖 ออกแบบมาเพื่อตอบคำถามและช่วยเหลือผู้ใช้งาน',
+            'ขอบคุณ|thank you|ขอบใจ|thanks': 'ยินดีค่ะ! 😊',
+            'สบายดีไหม|how are you|คุณเป็นอย่างไร': 'ฉันสบายดีค่ะ ขอบคุณที่ถาม! 😊 ส่วนคุณล่ะค่ะ?',
+            'เวลาเท่าไหร่|what time|กี่โมง': 'เวลาปัจจุบัน (UTC): 2026-02-11 08:50:45 ค่ะ ⏰',
+            'ผู้ใช้|username|login|user': 'ผู้ใช้ปัจจุบันคือ: namotasa2552kk-gif ค่ะ 👤',
+            '.*': null
+        };
+
+        function getAIResponse(userMessage) {
+            const msg = userMessage.toLowerCase().trim();
+
+            for (const [pattern, response] of Object.entries(aiResponses)) {
+                const regex = new RegExp(pattern, 'i');
+                if (regex.test(msg) && response !== null) {
+                    return response;
+                }
+            }
+
+            return null;
+        }
+
+        // ค้นหาจาก Wikipedia
+        async function searchWikipedia(query) {
+            try {
+                const response = await fetch(
+                    `${WIKIPEDIA_API}?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`
+                );
+                const data = await response.json();
+                
+                if (data.query.search.length > 0) {
+                    let result = `📚 ผลการค้นหา Wikipedia:\n\n`;
+                    data.query.search.slice(0, 3).forEach((item, index) => {
+                        result += `${index + 1}. <strong>${item.title}</strong>\n`;
+                        result += `${item.snippet.replace(/<[^>]*>/g, '')}...\n\n`;
+                    });
+                    return result;
+                }
+                return null;
+            } catch (error) {
+                console.error('Wikipedia search error:', error);
+                return null;
+            }
+        }
+
+        // ค้นหา DuckDuckGo
+        async function searchDuckDuckGo(query) {
+            try {
+                const response = await fetch(
+                    `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`
+                );
+                const data = await response.json();
+                
+                if (data.AbstractText) {
+                    return `🔍 ผลการค้นหา:\n\n${data.AbstractText}`;
+                }
+                return null;
+            } catch (error) {
+                console.error('DuckDuckGo search error:', error);
+                return null;
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('[id$="Tab"]').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (tabName === 'chat') {
+                document.getElementById('chatTab').style.display = 'flex';
+            } else if (tabName === 'search') {
+                document.getElementById('searchTab').style.display = 'flex';
+            } else if (tabName === 'info') {
+                document.getElementById('infoTab').style.display = 'flex';
+            }
+            
+            event.target.classList.add('active');
+        }
+
+        function addMessage(text, isUser = true, isHTML = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (isHTML) {
+                contentDiv.innerHTML = text;
+            } else {
+                contentDiv.textContent = text;
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            messageDiv.id = 'typingIndicator';
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                typingDiv.appendChild(dot);
+            }
+
+            messageDiv.appendChild(typingDiv);
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
         }
 
         async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const message = input.value;
-            input.value = '';
-            document.getElementById('chat').innerHTML += `<div>User: ${message}</div>`;
+            const message = messageInput.value.trim();
 
-            const searchResults = await searchGoogle(message);
-            document.getElementById('chat').innerHTML += `<div>Bot: ${JSON.stringify(searchResults.items)}</div>`;
+            if (message === '') return;
+
+            addMessage(message, true);
+            messageInput.value = '';
+            messageInput.focus();
+
+            const quickResponse = getAIResponse(message);
+
+            if (quickResponse) {
+                setTimeout(() => {
+                    addMessage(quickResponse, false);
+                }, 500 + Math.random() * 300);
+            } else {
+                showTypingIndicator();
+
+                setTimeout(async () => {
+                    removeTypingIndicator();
+
+                    let result = await searchWikipedia(message);
+                    
+                    if (!result) {
+                        result = await searchDuckDuckGo(message);
+                    }
+
+                    if (result) {
+                        addMessage(result, false, true);
+                    } else {
+                        addMessage(
+                            `ขออภัยค่ะ ไม่พบข้อมูลเกี่ยวกับ "${message}" 😅 ลองค้นหาคำศัพท์อื่นดูสิค่ะ`,
+                            false
+                        );
+                    }
+                }, 1000);
+            }
         }
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            searchResultBox.innerHTML = '';
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.disabled = true;
+            searchBtn.textContent = '⏳ กำลังค้นหา...';
+
+            try {
+                const result = await searchWikipedia(query);
+                
+                if (result) {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'message ai-message';
+                    msgDiv.innerHTML = `<div class="message-content" style="white-space:pre-wrap;">${result}</div>`;
+                    searchResultBox.appendChild(msgDiv);
+                } else {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'message ai-message';
+                    msgDiv.innerHTML = `<div class="message-content">ไม่พบผลการค้นหา 😅 ลองคำศัพท์อื่นดูสิค่ะ</div>`;
+                    searchResultBox.appendChild(msgDiv);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = '🔍 ค้นหา';
+            }
+        }
+
+        messageInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        searchInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        messageInput.focus();
     </script>
-</head>
-<body>
-    <h1>Welcome to the AI Chatbot</h1>
-    <div id="chat"></div>
-    <input id="user-input" type="text" placeholder="Type your message...">
-    <button onclick="sendMessage()">Send</button>
 </body>
 </html>
